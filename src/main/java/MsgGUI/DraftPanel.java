@@ -1,38 +1,33 @@
 package MsgGUI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class DraftPanel extends JPanel {
-    private JTextArea draftTextArea;
+public class DraftPanel extends BorderPane {
+    private TextArea draftTextArea;
 
     public DraftPanel() {
-        setLayout(new BorderLayout());
+        setPadding(new Insets(10));
 
-        draftTextArea = new JTextArea();
-        JScrollPane scrollPane = new JScrollPane(draftTextArea);
+        draftTextArea = new TextArea();
 
-        JButton saveButton = new JButton("Save Draft");
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveDraft();
-            }
-        });
+        Button saveButton = new Button("Save Draft");
+        saveButton.setOnAction(e -> saveDraft());
 
-        add(scrollPane, BorderLayout.CENTER);
-        add(saveButton, BorderLayout.SOUTH);
+        setCenter(draftTextArea);
+        setBottom(saveButton);
     }
 
     private void saveDraft() {
@@ -43,15 +38,25 @@ public class DraftPanel extends JPanel {
             Path draftsDirectory = Paths.get("EmailAppBuffer", "drafts");
             Files.createDirectories(draftsDirectory);
 
-            File draftFile = new File(draftsDirectory.toString(), fileName);
-            FileWriter writer = new FileWriter(draftFile);
+            Path draftFile = draftsDirectory.resolve(fileName);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(draftFile.toFile()));
             writer.write(content);
             writer.close();
 
-            JOptionPane.showMessageDialog(this, "Draft saved successfully");
+            // 使用JavaFX的对话框显示保存成功消息
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+            alert.setTitle("Save Draft");
+            alert.setHeaderText(null);
+            alert.setContentText("Draft saved successfully");
+            alert.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to save draft");
+            // 使用JavaFX的对话框显示保存失败消息
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Save Draft");
+            alert.setHeaderText(null);
+            alert.setContentText("Failed to save draft");
+            alert.showAndWait();
         }
     }
 

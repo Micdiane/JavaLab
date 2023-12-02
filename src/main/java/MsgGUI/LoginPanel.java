@@ -1,80 +1,57 @@
 package MsgGUI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 
-public class LoginPanel extends JPanel {
-    private JTextField emailField;
-    private JPasswordField passwordField;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class LoginPanel extends GridPane {
+    private TextField emailField;
+    private PasswordField passwordField;
 
     public LoginPanel() {
-        setLayout(new GridLayout(1, 1));
+        setPadding(new Insets(10));
+        setHgap(10);
+        setVgap(10);
 
-        // 创建登录面板
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridBagLayout());
+        Label emailLabel = new Label("Email:");
+        Label passwordLabel = new Label("Password:");
+        emailField = new TextField();
+        passwordField = new PasswordField();
+        Button loginButton = new Button("Login");
 
-        // 创建组件
-        JLabel emailLabel = new JLabel("Email:");
-        JLabel passwordLabel = new JLabel("Password:");
-        emailField = new JTextField(20);
-        passwordField = new JPasswordField(20);
-        JButton loginButton = new JButton("Login");
+        add(emailLabel, 0, 0);
+        add(emailField, 1, 0);
 
-        // 创建GridBagConstraints对象来设置组件的位置和大小
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.insets = new Insets(10, 10, 10, 10);
+        add(passwordLabel, 0, 1);
+        add(passwordField, 1, 1);
 
-        // 添加组件到登录面板
-        panel.add(emailLabel, constraints);
+        add(loginButton, 0, 2, 2, 1);
 
-        constraints.gridx = 1;
-        panel.add(emailField, constraints);
+        loginButton.setOnAction(e -> {
+            String email = emailField.getText();
+            String password = passwordField.getText();
 
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        panel.add(passwordLabel, constraints);
+            boolean loginSuccessful = validateCredentials(email, password);
 
-        constraints.gridx = 1;
-        panel.add(passwordField, constraints);
-
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        constraints.gridwidth = 2;
-        constraints.anchor = GridBagConstraints.CENTER;
-        panel.add(loginButton, constraints);
-
-        // 设置登录按钮的点击事件处理
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String email = emailField.getText();
-                char[] passwordChars = passwordField.getPassword();
-                String password = new String(passwordChars);
-
-                // 验证邮箱和密码
-                boolean loginSuccessful = validateCredentials(email, password);
-
-                if (loginSuccessful) {
-                    // 登录成功
-                    JOptionPane.showMessageDialog(LoginPanel.this, "Login successful!");
-                    // 执行登录后的操作
-                } else {
-                    // 登录失败
-                    JOptionPane.showMessageDialog(LoginPanel.this, "Invalid email or password. Please try again.");
-                }
-
-                // 清空密码框
-                passwordField.setText("");
+            if (loginSuccessful) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setContentText("Login successful!");
+                alert.showAndWait();
+                // 执行登录后的操作
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Invalid email or password. Please try again.");
+                alert.showAndWait();
             }
-        });
 
-        add(panel);
+            passwordField.setText("");
+        });
     }
 
     private boolean validateCredentials(String email, String password) {
@@ -113,7 +90,7 @@ public class LoginPanel extends JPanel {
             }
         }
 
-// 账号不存在或凭据验证失败
+        // 账号不存在或凭据验证失败
         return false;
     }
 }

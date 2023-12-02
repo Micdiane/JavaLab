@@ -1,63 +1,54 @@
 package MsgGUI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
 
-public class RegistrationPanel extends JPanel {
-    private JTextField emailTextField;
-    private JPasswordField passwordField;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class RegistrationPanel extends GridPane {
+    private TextField emailTextField;
+    private PasswordField passwordField;
 
     public RegistrationPanel() {
-        setLayout(new GridBagLayout());
+        setPadding(new Insets(10));
+        setHgap(10);
+        setVgap(10);
 
-        JLabel emailLabel = new JLabel("Email:");
-        emailTextField = new JTextField(20);
+        Label emailLabel = new Label("Email:");
+        emailTextField = new TextField();
 
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordField = new JPasswordField(20);
+        Label passwordLabel = new Label("Password:");
+        passwordField = new PasswordField();
 
-        JButton registerButton = new JButton("Register");
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String email = emailTextField.getText();
-                String password = new String(passwordField.getPassword());
+        Button registerButton = new Button("Register");
+        registerButton.setOnAction(e -> {
+            String email = emailTextField.getText();
+            String password = passwordField.getText();
 
-                if (registerUser(email, password)) {
-                    JOptionPane.showMessageDialog(RegistrationPanel.this, "User registered successfully");
-                    clearFields();
-                } else {
-                    JOptionPane.showMessageDialog(RegistrationPanel.this, "Failed to register user");
-                }
+            if (registerUser(email, password)) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setContentText("User registered successfully");
+                alert.showAndWait();
+                clearFields();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setContentText("Failed to register user");
+                alert.showAndWait();
             }
         });
 
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.insets = new Insets(10, 10, 10, 10);
-        constraints.anchor = GridBagConstraints.WEST;
+        add(emailLabel, 0, 0);
+        add(emailTextField, 1, 0);
 
-        add(emailLabel, constraints);
+        add(passwordLabel, 0, 1);
+        add(passwordField, 1, 1);
 
-        constraints.gridx = 1;
-        add(emailTextField, constraints);
-
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        add(passwordLabel, constraints);
-
-        constraints.gridx = 1;
-        add(passwordField, constraints);
-
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        constraints.gridwidth = 2;
-        constraints.anchor = GridBagConstraints.CENTER;
-        add(registerButton, constraints);
+        add(registerButton, 0, 2, 2, 1);
     }
 
     private boolean registerUser(String email, String password) {
@@ -123,5 +114,4 @@ public class RegistrationPanel extends JPanel {
         emailTextField.setText("");
         passwordField.setText("");
     }
-
 }

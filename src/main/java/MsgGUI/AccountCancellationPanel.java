@@ -1,63 +1,59 @@
 package MsgGUI;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 
-public class AccountCancellationPanel extends JPanel {
-    private JTextField emailTextField;
-    private JPasswordField passwordField;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class AccountCancellationPanel extends GridPane {
+    private TextField emailTextField;
+    private PasswordField passwordField;
 
     public AccountCancellationPanel() {
-        setLayout(new GridBagLayout());
+        setPadding(new Insets(10));
+        setHgap(10);
+        setVgap(10);
 
-        JLabel emailLabel = new JLabel("Email:");
-        emailTextField = new JTextField(20);
+        Label emailLabel = new Label("Email:");
+        emailTextField = new TextField();
 
-        JLabel passwordLabel = new JLabel("Password:");
-        passwordField = new JPasswordField(20);
+        Label passwordLabel = new Label("Password:");
+        passwordField = new PasswordField();
 
-        JButton cancelAccountButton = new JButton("Cancel Account");
-        cancelAccountButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String email = emailTextField.getText();
-                String password = new String(passwordField.getPassword());
+        Button cancelAccountButton = new Button("Cancel Account");
+        cancelAccountButton.setOnAction(e -> {
+            String email = emailTextField.getText();
+            String password = passwordField.getText();
 
-                if (cancelAccount(email, password)) {
-                    JOptionPane.showMessageDialog(AccountCancellationPanel.this, "Account canceled successfully");
-                    clearFields();
-                } else {
-                    JOptionPane.showMessageDialog(AccountCancellationPanel.this, "Failed to cancel account");
-                }
+            if (cancelAccount(email, password)) {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                alert.setTitle("Account Cancellation");
+                alert.setHeaderText(null);
+                alert.setContentText("Account canceled successfully");
+                alert.showAndWait();
+                clearFields();
+            } else {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                alert.setTitle("Account Cancellation");
+                alert.setHeaderText(null);
+                alert.setContentText("Failed to cancel account");
+                alert.showAndWait();
             }
         });
 
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.insets = new Insets(10, 10, 10, 10);
-        constraints.anchor = GridBagConstraints.WEST;
-
-        add(emailLabel, constraints);
-
-        constraints.gridx = 1;
-        add(emailTextField, constraints);
-
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        add(passwordLabel, constraints);
-
-        constraints.gridx = 1;
-        add(passwordField, constraints);
-
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        constraints.gridwidth = 2;
-        constraints.anchor = GridBagConstraints.CENTER;
-        add(cancelAccountButton, constraints);
+        add(emailLabel, 0, 0);
+        add(emailTextField, 1, 0);
+        add(passwordLabel, 0, 1);
+        add(passwordField, 1, 1);
+        add(cancelAccountButton, 0, 2, 2, 1);
     }
 
     private boolean cancelAccount(String email, String password) {
@@ -123,5 +119,4 @@ public class AccountCancellationPanel extends JPanel {
         emailTextField.setText("");
         passwordField.setText("");
     }
-
 }
