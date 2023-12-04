@@ -14,6 +14,8 @@ public class LoginPanel extends GridPane {
     private TextField emailField;
     private PasswordField passwordField;
 
+    public User currentUser;
+
     public LoginPanel() {
         setPadding(new Insets(10));
         setHgap(10);
@@ -76,6 +78,7 @@ public class LoginPanel extends GridPane {
 
             if (resultSet.next()) {
                 // 账号存在且凭据验证成功
+                currentUser = new User(resultSet.getString("email"), resultSet.getString("password"));
                 return true;
             }
         } catch (SQLException e) {
@@ -92,5 +95,9 @@ public class LoginPanel extends GridPane {
 
         // 账号不存在或凭据验证失败
         return false;
+    }
+
+    public Object getCurrentUser() {
+        return currentUser;
     }
 }
