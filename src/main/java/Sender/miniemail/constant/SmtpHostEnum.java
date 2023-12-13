@@ -29,7 +29,6 @@ public enum SmtpHostEnum {
     /**
      * 微软邮箱。需开启smtp，使用邮箱登录密码作为密码。mailSmtpSslEnable 需设置 false
      */
-    SMTP_OUTLOOK("smtp.office365.com"),
     ;
 
     private final String smtpHost;

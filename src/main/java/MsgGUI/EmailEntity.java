@@ -9,11 +9,17 @@ public class EmailEntity implements Serializable {
     private String recipient;
     private String subject;
     private String content;
+    private String id;
 
-    public EmailEntity(String recipient, String subject, String content) {
+    // 构造函数需要传入唯一标识符
+    public EmailEntity(String id, String recipient, String subject, String content) {
+        this.id = id;
         this.recipient = recipient;
         this.subject = subject;
         this.content = content;
+    }
+    public String getId() {
+        return id;
     }
 
     public String getRecipient() {

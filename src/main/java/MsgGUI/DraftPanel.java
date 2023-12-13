@@ -1,5 +1,11 @@
 package MsgGUI;
 
+import Sender.miniemail.config.MailConfig;
+import Sender.miniemail.constant.EmailContentTypeEnum;
+import Sender.miniemail.constant.SmtpHostEnum;
+import Sender.miniemail.core.DefaultMiniEmailFactory;
+import Sender.miniemail.core.MiniEmail;
+import Sender.miniemail.core.MiniEmailFactoryBuilder;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -13,14 +19,34 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DraftPanel extends BorderPane {
+    private final DefaultMiniEmailFactory miniEmailFactory;
+
+    public interface OnEmailSentListener {
+        void onEmailSent(EmailEntity draft);
+    }
+    private OnEmailSentListener emailSentListener;
+
+    public void setEmailSentListener(OnEmailSentListener listener) {
+        this.emailSentListener = listener;
+    }
     private TextArea draftTextArea;
     private ListView<EmailEntity> draftListView;
     private TextField recipientTextField;
     private TextField subjectTextField;
+    private EmailEntity curEmailEntity;
 
-    public DraftPanel() {
+
+
+    public DraftPanel(String UserEmail,String UserPassword,SmtpHostEnum Type) {
+        UserEmail = "1141504337@qq.com";
+        UserPassword="qjejagycjsdbhjfj"; // TODO 记得删掉。
+        this.miniEmailFactory = (DefaultMiniEmailFactory) (new MiniEmailFactoryBuilder()).build(MailConfig.config(UserEmail, UserPassword).setMailDebug(Boolean.FALSE).setMailSmtpHost(Type));
+
+
+
         setPadding(new Insets(10));
 
         draftTextArea = new TextArea();
@@ -45,14 +71,29 @@ public class DraftPanel extends BorderPane {
         Button saveButton = new Button("保存草稿");
         saveButton.setOnAction(e -> saveDraft());
 
-        Button newDraftButton = new Button("清空当前内容");
+        Button newDraftButton = new Button("新建草稿");
         newDraftButton.setOnAction(e -> createNewDraft());
 
         Button deleteDraftButton = new Button("删除草稿文件");
         deleteDraftButton.setOnAction(e -> deleteDraft());
 
+        Button sendButton = new Button("快速发送");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        sendButton.setOnAction(e ->{
+            try {
+                MiniEmail miniEmail = miniEmailFactory.init();
+                miniEmail.send(new String[]{recipientTextField.getText()},subjectTextField.getText(),
+                                EmailContentTypeEnum.TEXT, draftTextArea.getText());
+            }catch (Exception exception){
+                alert.setHeaderText("Error");
+                alert.setContentText("邮件发送失败");
+            }
+            alert.setHeaderText(null);
+            alert.setContentText("邮件成功发送给: " + String.join(", ", recipientTextField.getText()));
+        } );
+
         HBox buttonBar = new HBox(10);
-        buttonBar.getChildren().addAll(saveButton, newDraftButton, deleteDraftButton);
+        buttonBar.getChildren().addAll(saveButton, newDraftButton, deleteDraftButton,sendButton);
 
         setCenter(draftTextArea);
         setBottom(buttonBar);
@@ -64,28 +105,19 @@ public class DraftPanel extends BorderPane {
         draftListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
                 loadDraftContent(newValue);
+                curEmailEntity = newValue;
             }
         });
     }
 
     private void saveDraft() {
+        curEmailEntity.setContent(draftTextArea.getText());
+        curEmailEntity.setRecipient(recipientTextField.getText());
+        curEmailEntity.setSubject(subjectTextField.getText());
         try {
-            Path draftsDirectory = Paths.get("EmailAppBuffer", "drafts");
-            Files.createDirectories(draftsDirectory);
-
-            // Get the file name using time stamp
-            String fileName = System.currentTimeMillis() + ".dat";
-
-            // Save the draft entity
-            EmailEntity draftEntity = new EmailEntity(
-                    recipientTextField.getText(),
-                    subjectTextField.getText(),
-                    draftTextArea.getText()
-            );
-
-            Path draftFile = Paths.get("EmailAppBuffer", "drafts", fileName);
+            Path draftFile = Paths.get("EmailAppBuffer", "drafts", curEmailEntity.getId() + ".dat");
             try (ObjectOutputStream outputStream = new ObjectOutputStream(Files.newOutputStream(draftFile))) {
-                outputStream.writeObject(draftEntity);
+                outputStream.writeObject(curEmailEntity);
             }
 
             // Display a confirmation dialog
@@ -96,8 +128,11 @@ public class DraftPanel extends BorderPane {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // After saving, reload drafts
-        loadDrafts();
+    }
+
+
+    private String generateUniqueId() {
+        return String.valueOf(System.currentTimeMillis());
     }
 
     private void loadDrafts() {
@@ -129,6 +164,7 @@ public class DraftPanel extends BorderPane {
         }
     }
 
+
     private void loadDraftContent(EmailEntity draftEntity) {
         draftTextArea.setText(draftEntity.getContent());
         recipientTextField.setText(draftEntity.getRecipient());
@@ -136,35 +172,59 @@ public class DraftPanel extends BorderPane {
     }
 
     private void createNewDraft() {
-        // Clear recipient, subject, and content fields to create a new blank draft
         recipientTextField.clear();
         subjectTextField.clear();
         draftTextArea.clear();
+        try {
+            Path draftsDirectory = Paths.get("EmailAppBuffer", "drafts");
+            Files.createDirectories(draftsDirectory);
+
+            // Get the file name using time stamp
+            String fileName = System.currentTimeMillis() + ".dat";
+
+            // Save the draft entity
+            String uniqueId = generateUniqueId(); // 实现一个生成唯一标识符的方法
+            EmailEntity draftEntity = new EmailEntity(uniqueId, recipientTextField.getText(), subjectTextField.getText(), draftTextArea.getText());
+
+            Path draftFile = Paths.get("EmailAppBuffer", "drafts", fileName);
+            try (ObjectOutputStream outputStream = new ObjectOutputStream(Files.newOutputStream(draftFile))) {
+                outputStream.writeObject(draftEntity);
+            }
+
+            // Display a confirmation dialog
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("草稿新建成功");
+            alert.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // After saving, reload drafts
+        loadDrafts();
+        // Clear the selection in the draft list view (if any)
+        draftListView.getSelectionModel().clearSelection();
     }
+
 
     private void deleteDraft() {
-        EmailEntity selectedDraft = draftListView.getSelectionModel().getSelectedItem();
-        if (selectedDraft != null) {
-            try {
-                Path draftFile = Paths.get("EmailAppBuffer", "drafts", selectedDraft.hashCode() + ".dat");
+        // Delete the draft file
+        try {
+            Path draftFile = Paths.get("EmailAppBuffer", "drafts", curEmailEntity.getId() + ".dat");
+            Files.deleteIfExists(draftFile);
 
-                Files.deleteIfExists(draftFile);
+            // Display a confirmation dialog
+            Alert alert2 = new Alert(Alert.AlertType.INFORMATION);
+            alert2.setContentText("草稿删除成功");
+            alert2.showAndWait();
 
-                // Display a confirmation dialog
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setContentText("草稿删除成功");
-                alert.showAndWait();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // After deleting, reload drafts
-            loadDrafts();
-        } else {
-            // No draft selected, show an alert
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setContentText("请选择要删除的草稿");
-            alert.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        // After deleting, reload drafts
+        loadDrafts();
+        // Clear the selection in the draft list view (if any)
+        draftListView.getSelectionModel().clearSelection();
     }
+
 }

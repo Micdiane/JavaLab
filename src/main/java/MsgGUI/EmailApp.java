@@ -101,21 +101,30 @@ public class EmailApp extends Application {
             case "写草稿":
                 // Show the draft panel if logged in
                 if (loginpage.getCurrentUser() != null) {
-                    newTab = new Tab("写草稿");
-                    newTab.setContent(new DraftPanel()); // Replace with the content for the draft feature
-                }else{ //弹窗 显示未登录
+                    DraftPanel draftPanel = new DraftPanel(loginpage.getCurrentUserEmail(),loginpage.getCurrentUserPassword(),loginpage.getType());
+                    // 设置邮件发送监听器
+                    draftPanel.setEmailSentListener(new DraftPanel.OnEmailSentListener() {
+                        @Override
+                        public void onEmailSent(EmailEntity draft) {
+                            // 当邮件发送成功时，切换到发送面板
+                            EmailApp.this.navigateTo("发送");
+                        }
+                    });
+                    newTab = new Tab("写草稿", draftPanel);
+                } else {
+                    // 弹窗 显示未登录
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setContentText("请先登录");
                     alert.showAndWait();
-
                 }
                 break;
 
+
             case "发送":
                 // Show the email panel if logged in
-                if (loginpage.getCurrentUser() != null) {
+                if (loginpage.getCurrentUser() != null || true ) { // TODO: 删掉
                     newTab = new Tab("发送");
-                    newTab.setContent(new EmailPanel()); // Replace with the content for the send feature
+                    newTab.setContent(new SendPanel(loginpage.getCurrentUserEmail(),loginpage.getCurrentUserPassword(),loginpage.getType())); // Replace with the content for the send feature
                 }else{ //弹窗 显示未登录
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     alert.setContentText("请先登录");
