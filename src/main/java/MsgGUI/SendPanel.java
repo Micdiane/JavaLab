@@ -55,8 +55,7 @@ public class SendPanel extends BorderPane {
 
     public SendPanel(String UserEmail,String UserPassword,SmtpHostEnum MailType) {
         contactManager = new ContactManager();
-        UserEmail = "1141504337@qq.com";
-        UserPassword="qjejagycjsdbhjfj"; // TODO 记得删掉。
+
         this.miniEmailFactory = (DefaultMiniEmailFactory) (new MiniEmailFactoryBuilder()).build(MailConfig.config(UserEmail, UserPassword).setMailDebug(Boolean.FALSE).setMailSmtpHost(MailType));
         MiniEmail miniEmail = miniEmailFactory.init();
         setPadding(new Insets(10));

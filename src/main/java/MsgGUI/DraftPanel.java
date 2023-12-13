@@ -41,8 +41,8 @@ public class DraftPanel extends BorderPane {
 
 
     public DraftPanel(String UserEmail,String UserPassword,SmtpHostEnum Type) {
-        UserEmail = "1141504337@qq.com";
-        UserPassword="qjejagycjsdbhjfj"; // TODO 记得删掉。
+//        UserEmail = "1141504337@qq.com";
+//        UserPassword="qjejagycjsdbhjfj";
         this.miniEmailFactory = (DefaultMiniEmailFactory) (new MiniEmailFactoryBuilder()).build(MailConfig.config(UserEmail, UserPassword).setMailDebug(Boolean.FALSE).setMailSmtpHost(Type));
 
 

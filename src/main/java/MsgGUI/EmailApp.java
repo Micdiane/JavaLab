@@ -122,7 +122,7 @@ public class EmailApp extends Application {
 
             case "发送":
                 // Show the email panel if logged in
-                if (loginpage.getCurrentUser() != null || true ) { // TODO: 删掉
+                if (loginpage.getCurrentUser() != null) {
                     newTab = new Tab("发送");
                     newTab.setContent(new SendPanel(loginpage.getCurrentUserEmail(),loginpage.getCurrentUserPassword(),loginpage.getType())); // Replace with the content for the send feature
                 }else{ //弹窗 显示未登录
